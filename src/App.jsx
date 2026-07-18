@@ -363,18 +363,103 @@ function ChatTab({ biz }) {
   );
 }
 
+/* ---------------- QUOTE / INVOICE DOCUMENT ---------------- */
+function DocumentModal({ biz, doc, kind, onClose }) {
+  // doc: a job (for kind="quote") or an invoice (for kind="invoice")
+  const amount = Number(doc.amount) || 0;
+  const gstAmount = biz.gst_registered ? amount - amount / 1.1 : 0;
+  const docNumber = (doc.id || "").toString().slice(0, 8).toUpperCase();
+  const today = new Date().toLocaleDateString("en-AU");
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(30,33,28,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} className="doc-overlay">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .doc-print, .doc-print * { visibility: visible; }
+          .doc-print { position: absolute; top: 0; left: 0; width: 100%; }
+          .doc-overlay { position: absolute; background: none !important; }
+          .doc-no-print { display: none !important; }
+        }
+      `}</style>
+      <div style={{ background: "#fff", borderRadius: 8, maxWidth: 560, width: "100%", maxHeight: "88vh", overflowY: "auto", padding: 40 }} className="doc-print">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 30 }}>
+          <div>
+            <div style={{ fontFamily: FONTS.display, fontSize: 22, fontWeight: 700, color: COLORS.charcoal }}>{biz.name}</div>
+            <div style={{ fontSize: 12.5, color: COLORS.steel, marginTop: 4, lineHeight: 1.6 }}>
+              {biz.area || ""}{biz.phone ? ` · ${biz.phone}` : ""}<br />
+              {biz.abn ? `ABN ${biz.abn}` : ""} {biz.gst_registered ? "· GST registered" : "· Not registered for GST"}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.ochre, fontWeight: 700 }}>{kind === "quote" ? "Quote" : "Tax Invoice"}</div>
+            <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.steel, marginTop: 4 }}>#{docNumber}<br />{today}</div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: `1px solid ${COLORS.line}`, borderBottom: `1px solid ${COLORS.line}`, padding: "16px 0", marginBottom: 20 }}>
+          <div style={{ fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.green, marginBottom: 6 }}>{kind === "quote" ? "Quote for" : "Bill to"}</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>{doc.client}</div>
+          <div style={{ fontSize: 13, color: COLORS.steel, marginTop: 2 }}>{doc.phone || ""}{doc.address ? ` · ${doc.address}` : ""}</div>
+        </div>
+
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 20 }}>
+          <thead>
+            <tr style={{ borderBottom: `1.5px solid ${COLORS.charcoal}` }}>
+              <th style={{ textAlign: "left", fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", padding: "0 0 8px", color: COLORS.steel }}>Description</th>
+              <th style={{ textAlign: "right", fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", padding: "0 0 8px", color: COLORS.steel }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ padding: "10px 0", fontSize: 14 }}>{doc.service}</td>
+              <td style={{ padding: "10px 0", fontSize: 14, textAlign: "right" }}>${amount.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 14, marginBottom: 24 }}>
+          {biz.gst_registered && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: COLORS.steel, marginBottom: 6 }}>
+              <span>Includes GST</span><span>${gstAmount.toFixed(2)}</span>
+            </div>
+          )}
+          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONTS.display, fontSize: 20, fontWeight: 700 }}>
+            <span>Total</span><span>${amount.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div style={{ fontSize: 12, color: COLORS.steel }}>
+          {kind === "quote" ? "This quote is an estimate and may be subject to change." : `Payment terms: ${biz.payment_terms || "On completion"}.`}
+        </div>
+
+        <div className="doc-no-print" style={{ display: "flex", gap: 10, marginTop: 30 }}>
+          <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>CLOSE</Btn>
+          <Btn onClick={() => window.print()} style={{ flex: 1 }}>PRINT / SAVE AS PDF</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- JOBS (customer + job combined, phone/address included) ---------------- */
 function JobsTab({ session, biz, jobs, setJobs, services }) {
-  const [form, setForm] = useState({ client: "", phone: "", address: "", service_name: "", date: "", notes: "" });
+  const [form, setForm] = useState({ client: "", phone: "", address: "", service_name: "", amount: "", date: "", notes: "" });
   const [error, setError] = useState("");
+  const [docJob, setDocJob] = useState(null);
+
+  const selectService = (name) => {
+    const svc = services.find((s) => s.name === name);
+    setForm({ ...form, service_name: name, amount: svc && !svc.quote_required && svc.price ? String(svc.price) : form.amount });
+  };
 
   const addJob = async () => {
     if (!form.client || !form.service_name) return;
     setError("");
     try {
-      const [row] = await supaRest("jobs", { method: "POST", token: session.token, body: { business_id: biz.id, client: form.client, service: form.service_name, date: form.date || null, staff: form.phone, status: "Enquiry" } });
+      const [row] = await supaRest("jobs", { method: "POST", token: session.token, body: { business_id: biz.id, client: form.client, phone: form.phone, address: form.address, service: form.service_name, amount: form.amount ? Number(form.amount) : null, date: form.date || null, status: "Enquiry" } });
       setJobs((j) => [...j, row]);
-      setForm({ client: "", phone: "", address: "", service_name: "", date: "", notes: "" });
+      setForm({ client: "", phone: "", address: "", service_name: "", amount: "", date: "", notes: "" });
     } catch (e) { setError("Couldn't save that job."); }
   };
 
@@ -400,13 +485,14 @@ function JobsTab({ session, biz, jobs, setJobs, services }) {
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {services && services.length > 0 ? (
-            <select value={form.service_name} onChange={(e) => setForm({ ...form, service_name: e.target.value })} style={{ ...inputStyle, flex: 1, minWidth: 160 }}>
+            <select value={form.service_name} onChange={(e) => selectService(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 160 }}>
               <option value="">Select a service…</option>
               {services.map((s) => <option key={s.id} value={s.name}>{s.name}{s.quote_required ? " (quote)" : s.price ? ` — $${s.price}` : ""}</option>)}
             </select>
           ) : (
             <input placeholder="What's the job?" value={form.service_name} onChange={(e) => setForm({ ...form, service_name: e.target.value })} style={{ ...inputStyle, flex: 1, minWidth: 160 }} />
           )}
+          <input placeholder="Amount $" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} style={{ ...inputStyle, width: 110 }} />
           <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} style={{ ...inputStyle, width: 150 }} />
           <Btn onClick={addJob}>ADD JOB</Btn>
         </div>
@@ -415,12 +501,16 @@ function JobsTab({ session, biz, jobs, setJobs, services }) {
       {jobs.map((j) => (
         <Card key={j.id} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontWeight: 600, fontSize: 15 }}>{j.client}{j.staff ? ` · ${j.staff}` : ""}</div>
-            <div style={{ color: COLORS.steel, fontSize: 13 }}>{j.service}{j.date ? ` · ${j.date}` : ""}</div>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{j.client}{j.phone ? ` · ${j.phone}` : ""}</div>
+            <div style={{ color: COLORS.steel, fontSize: 13 }}>{j.service}{j.amount ? ` · $${j.amount}` : ""}{j.date ? ` · ${j.date}` : ""}{j.address ? ` · ${j.address}` : ""}</div>
           </div>
-          <button onClick={() => cycleStatus(j)} style={{ fontFamily: FONTS.mono, fontSize: 11.5, padding: "6px 12px", borderRadius: 20, border: "none", cursor: "pointer", background: statusColor(j.status), color: (j.status === "Enquiry" || j.status === "Quoted") ? COLORS.charcoal : "#fff" }}>{j.status}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={() => setDocJob(j)} style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.green, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>View quote</button>
+            <button onClick={() => cycleStatus(j)} style={{ fontFamily: FONTS.mono, fontSize: 11.5, padding: "6px 12px", borderRadius: 20, border: "none", cursor: "pointer", background: statusColor(j.status), color: (j.status === "Enquiry" || j.status === "Quoted") ? COLORS.charcoal : "#fff" }}>{j.status}</button>
+          </div>
         </Card>
       ))}
+      {docJob && <DocumentModal biz={biz} doc={docJob} kind="quote" onClose={() => setDocJob(null)} />}
     </div>
   );
 }
@@ -428,12 +518,12 @@ function JobsTab({ session, biz, jobs, setJobs, services }) {
 /* ---------------- INVOICING (with ABN/GST) ---------------- */
 function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
   const [error, setError] = useState("");
+  const [docInvoice, setDocInvoice] = useState(null);
   const doneJobs = jobs.filter((j) => (j.status === "Done" || j.status === "Paid") && !invoices.some((i) => i.job_id === j.id));
 
   const createInvoice = async (job) => {
-    const amount = Math.floor(Math.random() * 250) + 80;
     try {
-      const [row] = await supaRest("invoices", { method: "POST", token: session.token, body: { business_id: biz.id, job_id: job.id, client: job.client, service: job.service, amount, status: "Unpaid" } });
+      const [row] = await supaRest("invoices", { method: "POST", token: session.token, body: { business_id: biz.id, job_id: job.id, client: job.client, service: job.service, amount: job.amount || 0, phone: job.phone, address: job.address, status: "Unpaid" } });
       setInvoices((inv) => [...inv, row]);
     } catch (e) { setError("Couldn't create that invoice."); }
   };
@@ -455,7 +545,7 @@ function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
           <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.green, marginBottom: 12 }}>READY TO INVOICE</div>
           {doneJobs.map((j) => (
             <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
-              <div style={{ fontSize: 14 }}>{j.client} — {j.service}</div>
+              <div style={{ fontSize: 14 }}>{j.client} — {j.service}{j.amount ? ` · $${j.amount}` : " · no amount set"}</div>
               <Btn variant="ghost" onClick={() => createInvoice(j)} style={{ fontSize: 11 }}>CREATE INVOICE</Btn>
             </div>
           ))}
@@ -468,14 +558,18 @@ function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
             <div><div style={{ fontWeight: 600, fontSize: 15 }}>{i.client}</div><div style={{ color: COLORS.steel, fontSize: 13 }}>{i.service}</div></div>
             <div style={{ fontFamily: FONTS.mono, fontSize: 18, fontWeight: 600 }}>${i.amount}</div>
           </div>
-          {i.status === "Unpaid" ? (
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button onClick={() => markPaid(i, "Card")} style={payBtnStyle}>💳 Card</button>
-              <button onClick={() => markPaid(i, "Bank transfer")} style={payBtnStyle}>Bank transfer</button>
-            </div>
-          ) : (<div style={{ marginTop: 10, fontFamily: FONTS.mono, fontSize: 11.5, color: COLORS.green }}>PAID via {i.method}</div>)}
+          <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center" }}>
+            <button onClick={() => setDocInvoice(i)} style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.green, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>View invoice</button>
+            {i.status === "Unpaid" ? (
+              <>
+                <button onClick={() => markPaid(i, "Card")} style={payBtnStyle}>💳 Card</button>
+                <button onClick={() => markPaid(i, "Bank transfer")} style={payBtnStyle}>Bank transfer</button>
+              </>
+            ) : (<span style={{ fontFamily: FONTS.mono, fontSize: 11.5, color: COLORS.green }}>PAID via {i.method}</span>)}
+          </div>
         </Card>
       ))}
+      {docInvoice && <DocumentModal biz={biz} doc={docInvoice} kind="invoice" onClose={() => setDocInvoice(null)} />}
     </div>
   );
 }
