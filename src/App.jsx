@@ -214,9 +214,9 @@ function OnboardingWizard({ session, onComplete }) {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Registered for GST?</label>
-                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                  <Chip active={biz.gst_registered} onClick={() => setBiz({ ...biz, gst_registered: true })}>Yes</Chip>
-                  <Chip active={!biz.gst_registered} onClick={() => setBiz({ ...biz, gst_registered: false })}>No</Chip>
+                <div style={{ display: "flex", gap: 8, alignItems: "stretch", height: 44 }}>
+                  <button onClick={() => setBiz({ ...biz, gst_registered: true })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${biz.gst_registered ? COLORS.charcoal : "rgba(30,33,28,0.45)"}`, background: biz.gst_registered ? COLORS.charcoal : "#fff", color: biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>Yes</button>
+                  <button onClick={() => setBiz({ ...biz, gst_registered: false })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${!biz.gst_registered ? COLORS.charcoal : "rgba(30,33,28,0.45)"}`, background: !biz.gst_registered ? COLORS.charcoal : "#fff", color: !biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>No</button>
                 </div>
               </div>
             </div>
