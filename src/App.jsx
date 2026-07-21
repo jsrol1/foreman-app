@@ -516,14 +516,25 @@ function JobsTab({ session, biz, jobs, setJobs, services }) {
 }
 
 /* ---------------- INVOICING (with ABN/GST) ---------------- */
+function computeDueDate(terms) {
+  const days = terms === "7 days" ? 7 : terms === "14 days" ? 14 : terms === "30 days" ? 30 : 0;
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
   const [error, setError] = useState("");
   const [docInvoice, setDocInvoice] = useState(null);
-  const doneJobs = jobs.filter((j) => (j.status === "Done" || j.status === "Paid") && !invoices.some((i) => i.job_id === j.id));
+  const [chaseFor, setChaseFor] = useState(null);
+  const [chaseText, setChaseText] = useState("");
+  const [chaseLoading, setChaseLoading] = useState(false);
+  const readyJobs = jobs.filter((j) => j.status !== "Enquiry" && !invoices.some((i) => i.job_id === j.id));
 
   const createInvoice = async (job) => {
     try {
-      const [row] = await supaRest("invoices", { method: "POST", token: session.token, body: { business_id: biz.id, job_id: job.id, client: job.client, service: job.service, amount: job.amount || 0, phone: job.phone, address: job.address, status: "Unpaid" } });
+      const due_date = computeDueDate(biz.payment_terms);
+      const [row] = await supaRest("invoices", { method: "POST", token: session.token, body: { business_id: biz.id, job_id: job.id, client: job.client, service: job.service, amount: job.amount || 0, phone: job.phone, address: job.address, status: "Unpaid", due_date } });
       setInvoices((inv) => [...inv, row]);
     } catch (e) { setError("Couldn't create that invoice."); }
   };
@@ -534,39 +545,73 @@ function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
     } catch (e) { setError("Couldn't mark that as paid."); }
   };
 
+  const isOverdue = (i) => i.status === "Unpaid" && i.due_date && new Date(i.due_date) < new Date(new Date().toDateString());
+  const daysOverdue = (i) => Math.max(0, Math.floor((new Date(new Date().toDateString()) - new Date(i.due_date)) / 86400000));
+
+  const draftChase = async (invoice) => {
+    setChaseFor(invoice.id); setChaseText(""); setChaseLoading(true);
+    const overdueBy = daysOverdue(invoice);
+    const system = `You write short, polite but firm payment reminder messages for a small Australian trade business called "${biz.name}". Keep it to 2-3 sentences, friendly but clear, suitable for SMS or email. Never sound aggressive.`;
+    const msg = await callClaude(system, `Write a payment reminder for ${invoice.client}, for "${invoice.service}", amount $${invoice.amount}, ${overdueBy > 0 ? `overdue by ${overdueBy} day${overdueBy === 1 ? "" : "s"}` : "due today"}.`);
+    setChaseText(msg);
+    setChaseLoading(false);
+  };
+
+  const copyChase = () => { navigator.clipboard?.writeText(chaseText); };
+
   const gstLabel = biz.gst_registered ? "incl. GST" : "no GST";
+  const sorted = [...invoices].sort((a, b) => (isOverdue(b) ? 1 : 0) - (isOverdue(a) ? 1 : 0));
 
   return (
     <div>
       <SectionTitle sub={`Terms: ${biz.payment_terms || "On completion"} · ABN ${biz.abn || "not set"} · ${gstLabel}`}>Invoicing</SectionTitle>
       <ErrorBanner msg={error} />
-      {doneJobs.length > 0 && (
+      {readyJobs.length > 0 && (
         <Card style={{ marginBottom: 18 }}>
-          <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.green, marginBottom: 12 }}>READY TO INVOICE</div>
-          {doneJobs.map((j) => (
+          <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.green, marginBottom: 12 }}>READY TO INVOICE — from Quoted onward</div>
+          {readyJobs.map((j) => (
             <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
-              <div style={{ fontSize: 14 }}>{j.client} — {j.service}{j.amount ? ` · $${j.amount}` : " · no amount set"}</div>
+              <div style={{ fontSize: 14 }}>{j.client} — {j.service}{j.amount ? ` · $${j.amount}` : " · no amount set"} · <span style={{ color: COLORS.steel }}>{j.status}</span></div>
               <Btn variant="ghost" onClick={() => createInvoice(j)} style={{ fontSize: 11 }}>CREATE INVOICE</Btn>
             </div>
           ))}
         </Card>
       )}
       {invoices.length === 0 && <div style={{ color: COLORS.steel, fontSize: 14 }}>No invoices yet.</div>}
-      {invoices.map((i) => (
+      {sorted.map((i) => (
         <Card key={i.id} style={{ marginBottom: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div><div style={{ fontWeight: 600, fontSize: 15 }}>{i.client}</div><div style={{ color: COLORS.steel, fontSize: 13 }}>{i.service}</div></div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
+                {i.client}
+                {isOverdue(i) && <span style={{ fontFamily: FONTS.mono, fontSize: 10, background: COLORS.rust, color: "#fff", padding: "2px 8px", borderRadius: 10 }}>OVERDUE {daysOverdue(i)}d</span>}
+              </div>
+              <div style={{ color: COLORS.steel, fontSize: 13 }}>{i.service}{i.due_date ? ` · due ${i.due_date}` : ""}</div>
+            </div>
             <div style={{ fontFamily: FONTS.mono, fontSize: 18, fontWeight: 600 }}>${i.amount}</div>
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={() => setDocInvoice(i)} style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.green, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>View invoice</button>
             {i.status === "Unpaid" ? (
               <>
                 <button onClick={() => markPaid(i, "Card")} style={payBtnStyle}>💳 Card</button>
                 <button onClick={() => markPaid(i, "Bank transfer")} style={payBtnStyle}>Bank transfer</button>
+                <button onClick={() => draftChase(i)} style={{ ...payBtnStyle, background: isOverdue(i) ? COLORS.rust : "#fff", color: isOverdue(i) ? "#fff" : COLORS.charcoal }}>Chase payment</button>
               </>
             ) : (<span style={{ fontFamily: FONTS.mono, fontSize: 11.5, color: COLORS.green }}>PAID via {i.method}</span>)}
           </div>
+          {chaseFor === i.id && (
+            <div style={{ marginTop: 12, padding: 14, background: "#F7F5EE", borderRadius: 6 }}>
+              {chaseLoading ? (
+                <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.steel }}>Writing…</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 10 }}>{chaseText}</div>
+                  <Btn variant="ghost" onClick={copyChase} style={{ fontSize: 11 }}>COPY TO SEND</Btn>
+                </>
+              )}
+            </div>
+          )}
         </Card>
       ))}
       {docInvoice && <DocumentModal biz={biz} doc={docInvoice} kind="invoice" onClose={() => setDocInvoice(null)} />}
