@@ -284,7 +284,6 @@ function OnboardingWizard({ session, onComplete }) {
 function Sidebar({ biz, tab, setTab, onSignOut }) {
   const tabs = [
     { key: "overview", label: "Overview" },
-    { key: "chat", label: "AI Front Desk" },
     { key: "bookings", label: "Jobs" },
     { key: "payments", label: "Invoicing" },
     { key: "marketing", label: "Marketing (demo)" },
@@ -320,45 +319,6 @@ function Overview({ biz, jobs, invoices }) {
         <Card><div style={statLabel}>Unpaid invoices</div><div style={statNum}>{unpaid.length}</div></Card>
         <Card><div style={statLabel}>GST status</div><div style={{ ...statNum, fontSize: 20 }}>{biz.gst_registered ? "Registered" : "Not registered"}</div></Card>
       </div>
-    </div>
-  );
-}
-
-/* ---------------- AI FRONT DESK ---------------- */
-function ChatTab({ biz }) {
-  const [messages, setMessages] = useState([{ role: "assistant", content: `G'day! I'm the AI front desk for ${biz.name}. Try asking me something a customer might ask.` }]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef(null);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setMessages((m) => [...m, { role: "user", content: userMsg }]);
-    setInput(""); setLoading(true);
-    const system = `You are the friendly AI front-desk assistant for "${biz.name}", a ${biz.type} business${biz.area ? ` serving ${biz.area}` : ""}. Keep replies short (2-4 sentences), warm and practical.`;
-    const reply = await callClaude(system, userMsg);
-    setMessages((m) => [...m, { role: "assistant", content: reply }]);
-    setLoading(false);
-  };
-  return (
-    <div>
-      <SectionTitle sub="What customers talk to inside your app.">AI Front Desk</SectionTitle>
-      <Card style={{ padding: 0, display: "flex", flexDirection: "column", height: 480 }}>
-        <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>
-          {messages.map((m, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: 12 }}>
-              <div style={{ maxWidth: "75%", background: m.role === "user" ? COLORS.green : "#F1EEE2", color: m.role === "user" ? "#fff" : COLORS.charcoal, padding: "10px 14px", borderRadius: 10, fontSize: 14.5, lineHeight: 1.5 }}>{m.content}</div>
-            </div>
-          ))}
-          {loading && <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.steel }}>Typing…</div>}
-          <div ref={bottomRef} />
-        </div>
-        <div style={{ display: "flex", borderTop: `1px solid ${COLORS.line}`, padding: 12, gap: 8 }}>
-          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask something a customer might ask…" style={{ ...inputStyle, border: "none", background: "#F7F5EE" }} />
-          <Btn onClick={send} disabled={loading} variant="accent">SEND</Btn>
-        </div>
-      </Card>
     </div>
   );
 }
@@ -644,6 +604,20 @@ function WebsiteTab({ biz }) {
   return (
     <div>
       <SectionTitle sub="Where customers install your app to their home screen.">Website / App Page</SectionTitle>
+
+      <Card style={{ marginBottom: 20, background: "#F7F5EE" }}>
+        <div style={{ fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.green, marginBottom: 10 }}>How to explain this to a client</div>
+        <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
+          This page is the business's front door. A customer visits it in any browser, taps <strong>"Add to Home Screen,"</strong> and it behaves like a real installed app — its own icon, opens full-screen, no App Store required.
+        </p>
+        <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
+          There's no separate app to build or submit for approval per business, which is what keeps this affordable at scale — the same approach costs a fraction of native App Store development, with none of the review delays.
+        </p>
+        <p style={{ fontSize: 14, lineHeight: 1.7 }}>
+          Everything below the fold is generated automatically from the business's Setup details — name, trade, area, and phone — so there's nothing extra to design or maintain per customer.
+        </p>
+      </Card>
+
       <div style={{ border: `1px solid ${COLORS.line}`, borderRadius: 8, overflow: "hidden" }}>
         <div style={{ background: COLORS.charcoal, color: COLORS.paper, padding: "60px 40px", textAlign: "center" }}>
           <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.ochre, marginBottom: 12 }}>{biz.area || "Your service area"}</div>
@@ -800,7 +774,6 @@ export default function ForemanApp() {
         <Sidebar biz={biz} tab={tab} setTab={setTab} onSignOut={() => { setSession(null); setBiz(null); setJobs([]); setInvoices([]); setServices([]); }} />
         <div style={{ flex: 1, padding: "36px 44px" }}>
           {tab === "overview" && <Overview biz={biz} jobs={jobs} invoices={invoices} />}
-          {tab === "chat" && <ChatTab biz={biz} />}
           {tab === "bookings" && <JobsTab session={session} biz={biz} jobs={jobs} setJobs={setJobs} services={services} />}
           {tab === "payments" && <InvoicingTab session={session} biz={biz} jobs={jobs} invoices={invoices} setInvoices={setInvoices} />}
           {tab === "marketing" && <MarketingTab biz={biz} jobs={jobs} />}
