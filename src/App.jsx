@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { LayoutDashboard, Hammer, Receipt, Megaphone, Smartphone, Settings2, LogOut, Wrench } from "lucide-react";
 
 /* ============================================================
    SUPABASE SETUP — paste your own project's values here.
@@ -75,7 +76,15 @@ function Card({ children, style }) {
   return <div style={{ background: "#fff", border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 22, ...style }}>{children}</div>;
 }
 function SectionTitle({ children, sub }) {
-  return <div style={{ marginBottom: 22 }}><h2 style={{ fontFamily: FONTS.display, fontSize: 24, fontWeight: 600, color: COLORS.charcoal }}>{children}</h2>{sub && <p style={{ color: COLORS.steel, fontSize: 14, marginTop: 6 }}>{sub}</p>}</div>;
+  return (
+    <div style={{ marginBottom: 26 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <div style={{ width: 5, height: 24, background: HAZARD_STRIPE, borderRadius: 1, flexShrink: 0 }} />
+        <h2 style={{ fontFamily: FONTS.display, fontSize: 25, fontWeight: 700, color: COLORS.charcoal, letterSpacing: "-0.01em" }}>{children}</h2>
+      </div>
+      {sub && <p style={{ color: COLORS.steel, fontSize: 14, marginLeft: 15 }}>{sub}</p>}
+    </div>
+  );
 }
 function Btn({ children, onClick, disabled, variant = "primary", style }) {
   const bg = variant === "primary" ? COLORS.green : variant === "accent" ? COLORS.ochre : "transparent";
@@ -281,28 +290,48 @@ function OnboardingWizard({ session, onComplete }) {
 }
 
 /* ---------------- SIDEBAR ---------------- */
+const HAZARD_STRIPE = `repeating-linear-gradient(45deg, ${COLORS.ochre} 0px, ${COLORS.ochre} 8px, ${COLORS.charcoal} 8px, ${COLORS.charcoal} 16px)`;
+
 function Sidebar({ biz, tab, setTab, onSignOut }) {
   const tabs = [
-    { key: "overview", label: "Overview" },
-    { key: "bookings", label: "Jobs" },
-    { key: "payments", label: "Invoicing" },
-    { key: "marketing", label: "Marketing (demo)" },
-    { key: "website", label: "Website / App Page" },
-    { key: "setup", label: "Setup" },
+    { key: "overview", label: "Overview", icon: LayoutDashboard },
+    { key: "bookings", label: "Jobs", icon: Hammer },
+    { key: "payments", label: "Invoicing", icon: Receipt },
+    { key: "marketing", label: "Marketing", icon: Megaphone },
+    { key: "website", label: "Website / App Page", icon: Smartphone },
+    { key: "setup", label: "Setup", icon: Settings2 },
   ];
   return (
-    <div style={{ width: 230, flexShrink: 0, background: COLORS.charcoal, color: COLORS.paper, padding: "28px 18px", display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, padding: "0 8px" }}>
-        <div style={{ width: 24, height: 24, border: `2px solid ${COLORS.ochre}`, borderRadius: 3, color: COLORS.ochre, fontFamily: FONTS.mono, fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-4deg)" }}>F</div>
-        <span style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 17 }}>Foreman</span>
+    <div style={{ width: 240, flexShrink: 0, background: COLORS.charcoal, color: COLORS.paper, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div style={{ height: 4, background: HAZARD_STRIPE }} />
+      <div style={{ padding: "24px 20px 18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+          <div style={{ width: 34, height: 34, background: COLORS.ochre, borderRadius: 4, color: COLORS.charcoal, fontFamily: FONTS.display, fontSize: 17, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-3deg)", boxShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}>F</div>
+          <span style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 20, letterSpacing: "-0.01em" }}>Foreman</span>
+        </div>
+        <div style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.steel, marginTop: 10, paddingLeft: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>{biz.name}</div>
       </div>
-      <div style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.steel, padding: "0 8px", marginBottom: 24 }}>{biz.name}</div>
-      {tabs.map((t) => (
-        <button key={t.key} onClick={() => setTab(t.key)} style={{ textAlign: "left", background: tab === t.key ? COLORS.charcoal2 : "transparent", color: tab === t.key ? COLORS.ochre : COLORS.paper, border: "none", borderRadius: 4, padding: "10px 12px", fontSize: 13.5, fontFamily: FONTS.body, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", marginBottom: 2 }}>{t.label}</button>
-      ))}
+      <div style={{ padding: "4px 12px" }}>
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, textAlign: "left", background: active ? COLORS.charcoal2 : "transparent", color: active ? COLORS.ochre : "#C9CCC4", border: "none", borderLeft: active ? `3px solid ${COLORS.ochre}` : "3px solid transparent", borderRadius: 3, padding: "11px 12px", fontSize: 13.5, fontFamily: FONTS.body, fontWeight: active ? 700 : 500, cursor: "pointer", marginBottom: 3, transition: "all .12s ease" }}>
+              <Icon size={16} strokeWidth={2.25} style={{ flexShrink: 0 }} />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
       <div style={{ flex: 1 }} />
-      <button onClick={onSignOut} style={{ textAlign: "left", background: "transparent", color: COLORS.steel, border: "none", fontSize: 12.5, cursor: "pointer", padding: "0 8px", marginBottom: 10 }}>Sign out</button>
-      <div style={{ fontFamily: FONTS.mono, fontSize: 10, color: COLORS.steel, padding: "0 8px", lineHeight: 1.6 }}>Connected to Supabase</div>
+      <div style={{ padding: "16px 20px", borderTop: `1px solid rgba(241,238,226,0.1)` }}>
+        <button onClick={onSignOut} style={{ display: "flex", alignItems: "center", gap: 8, textAlign: "left", background: "transparent", color: COLORS.steel, border: "none", fontSize: 12.5, cursor: "pointer", padding: 0, marginBottom: 10 }}>
+          <LogOut size={13} /> Sign out
+        </button>
+        <div style={{ fontFamily: FONTS.mono, fontSize: 10, color: COLORS.steel, display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: COLORS.green }} /> Connected to Supabase
+        </div>
+      </div>
     </div>
   );
 }
@@ -311,13 +340,26 @@ function Sidebar({ biz, tab, setTab, onSignOut }) {
 function Overview({ biz, jobs, invoices }) {
   const unpaid = invoices.filter((i) => i.status === "Unpaid");
   const upcoming = jobs.filter((j) => j.status !== "Done" && j.status !== "Paid");
+  const statCard = (icon, label, value, accent, small) => {
+    const Icon = icon;
+    return (
+      <Card style={{ position: "relative", overflow: "hidden", paddingTop: 20 }}>
+        <div style={{ position: "absolute", top: -14, right: -14, width: 64, height: 64, borderRadius: "50%", background: accent, opacity: 0.12 }} />
+        <div style={{ width: 34, height: 34, borderRadius: 6, background: accent, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+          <Icon size={17} color="#fff" strokeWidth={2.25} />
+        </div>
+        <div style={statLabel}>{label}</div>
+        <div style={small ? { ...statNum, fontSize: 20 } : statNum}>{value}</div>
+      </Card>
+    );
+  };
   return (
     <div>
       <SectionTitle sub={`${biz.type} · ${biz.area || "Service area not set"}`}>Overview</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-        <Card><div style={statLabel}>Open jobs</div><div style={statNum}>{upcoming.length}</div></Card>
-        <Card><div style={statLabel}>Unpaid invoices</div><div style={statNum}>{unpaid.length}</div></Card>
-        <Card><div style={statLabel}>GST status</div><div style={{ ...statNum, fontSize: 20 }}>{biz.gst_registered ? "Registered" : "Not registered"}</div></Card>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        {statCard(Hammer, "Open jobs", upcoming.length, COLORS.green)}
+        {statCard(Receipt, "Unpaid invoices", unpaid.length, COLORS.rust)}
+        {statCard(Wrench, "GST status", biz.gst_registered ? "Registered" : "Not registered", COLORS.ochre, true)}
       </div>
     </div>
   );
@@ -459,7 +501,7 @@ function JobsTab({ session, biz, jobs, setJobs, services }) {
       </Card>
       {jobs.length === 0 && <div style={{ color: COLORS.steel, fontSize: 14 }}>No jobs yet.</div>}
       {jobs.map((j) => (
-        <Card key={j.id} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Card key={j.id} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", borderLeft: `4px solid ${statusColor(j.status)}` }}>
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>{j.client}{j.phone ? ` · ${j.phone}` : ""}</div>
             <div style={{ color: COLORS.steel, fontSize: 13 }}>{j.service}{j.amount ? ` · $${j.amount}` : ""}{j.date ? ` · ${j.date}` : ""}{j.address ? ` · ${j.address}` : ""}</div>
@@ -539,7 +581,7 @@ function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
       )}
       {invoices.length === 0 && <div style={{ color: COLORS.steel, fontSize: 14 }}>No invoices yet.</div>}
       {sorted.map((i) => (
-        <Card key={i.id} style={{ marginBottom: 10 }}>
+        <Card key={i.id} style={{ marginBottom: 10, borderLeft: `4px solid ${i.status === "Paid" ? COLORS.green : isOverdue(i) ? COLORS.rust : COLORS.ochre}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
