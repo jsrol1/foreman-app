@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Hammer, Receipt, Megaphone, Smartphone, Settings2, LogOut, Wrench } from "lucide-react";
+import { LayoutDashboard, Hammer, Receipt, Megaphone, Smartphone, Settings2, LogOut, Wrench, Sparkles } from "lucide-react";
 
 /* ============================================================
    SUPABASE SETUP — paste your own project's values here.
@@ -10,12 +10,12 @@ const SUPABASE_ANON_KEY = "sb_publishable_IjZhfID8rfKqGe0ifHmKMA_uKMFFlTA";
 const CONFIGURED = SUPABASE_URL.startsWith("https://") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
 
 const COLORS = {
-  charcoal: "#1E211C", charcoal2: "#262A23", paper: "#F1EEE2",
-  ochre: "#E1962D", green: "#3A5744", rust: "#B5502E", steel: "#8B978F",
-  line: "rgba(30,33,28,0.14)",
+  charcoal: "#101B2D", charcoal2: "#16233D", paper: "#F3F6F4",
+  ochre: "#F0A202", green: "#16A34A", rust: "#D64545", steel: "#64748B",
+  line: "rgba(16,27,45,0.12)",
 };
 const FONTS = {
-  display: "'Space Grotesk', sans-serif",
+  display: "'Plus Jakarta Sans', sans-serif",
   body: "'Inter', sans-serif",
   mono: "'IBM Plex Mono', monospace",
 };
@@ -64,22 +64,22 @@ async function callClaude(systemPrompt, userMessage) {
   } catch (e) { return "Sorry, something went wrong generating that."; }
 }
 
-const labelStyle = { display: "block", fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.green, marginBottom: 8 };
-const inputStyle = { width: "100%", fontFamily: FONTS.body, fontSize: 15, padding: "11px 12px", border: `1.5px solid ${COLORS.line}`, borderRadius: 4, outline: "none", background: "#fff", color: COLORS.charcoal };
+const labelStyle = { display: "block", fontFamily: FONTS.body, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: COLORS.steel, marginBottom: 8 };
+const inputStyle = { width: "100%", fontFamily: FONTS.body, fontSize: 15, padding: "11px 13px", border: `1.5px solid ${COLORS.line}`, borderRadius: 10, outline: "none", background: "#FBFCFB", color: COLORS.charcoal };
 const statLabel = { fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.steel, marginBottom: 8 };
-const statNum = { fontFamily: FONTS.display, fontSize: 34, fontWeight: 600, color: COLORS.charcoal };
+const statNum = { fontFamily: FONTS.display, fontSize: 34, fontWeight: 700, color: COLORS.charcoal };
 
 function Chip({ active, onClick, children }) {
-  return <button onClick={onClick} style={{ fontFamily: FONTS.mono, fontSize: 12.5, padding: "8px 14px", borderRadius: 20, border: `1.5px solid ${active ? COLORS.charcoal : COLORS.line}`, background: active ? COLORS.charcoal : "transparent", color: active ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>{children}</button>;
+  return <button onClick={onClick} style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 12.5, padding: "8px 14px", borderRadius: 20, border: `1.5px solid ${active ? COLORS.green : COLORS.line}`, background: active ? COLORS.green : "transparent", color: active ? "#fff" : COLORS.charcoal, cursor: "pointer" }}>{children}</button>;
 }
 function Card({ children, style }) {
-  return <div style={{ background: "#fff", border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 22, ...style }}>{children}</div>;
+  return <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 1px 2px rgba(16,27,45,0.04), 0 8px 24px rgba(16,27,45,0.06)", padding: 22, ...style }}>{children}</div>;
 }
 function SectionTitle({ children, sub }) {
   return (
     <div style={{ marginBottom: 26 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        <div style={{ width: 5, height: 24, background: HAZARD_STRIPE, borderRadius: 1, flexShrink: 0 }} />
+        <div style={{ width: 5, height: 24, background: COLORS.green, borderRadius: 3, flexShrink: 0 }} />
         <h2 style={{ fontFamily: FONTS.display, fontSize: 25, fontWeight: 700, color: COLORS.charcoal, letterSpacing: "-0.01em" }}>{children}</h2>
       </div>
       {sub && <p style={{ color: COLORS.steel, fontSize: 14, marginLeft: 15 }}>{sub}</p>}
@@ -89,11 +89,11 @@ function SectionTitle({ children, sub }) {
 function Btn({ children, onClick, disabled, variant = "primary", style }) {
   const bg = variant === "primary" ? COLORS.green : variant === "accent" ? COLORS.ochre : "transparent";
   const color = variant === "ghost" ? COLORS.charcoal : "#fff";
-  return <button onClick={onClick} disabled={disabled} style={{ background: disabled ? COLORS.steel : bg, color: variant === "accent" ? COLORS.charcoal : color, border: variant === "ghost" ? `1.5px solid ${COLORS.charcoal}` : "none", borderRadius: 4, padding: "11px 20px", fontFamily: FONTS.mono, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", ...style }}>{children}</button>;
+  return <button onClick={onClick} disabled={disabled} style={{ background: disabled ? "#C6D0C9" : bg, color: variant === "accent" ? COLORS.charcoal : color, border: variant === "ghost" ? `1.5px solid ${COLORS.charcoal}` : "none", borderRadius: 10, padding: "11px 20px", fontFamily: FONTS.display, fontWeight: 700, fontSize: 13.5, cursor: disabled ? "not-allowed" : "pointer", ...style }}>{children}</button>;
 }
 function ErrorBanner({ msg }) {
   if (!msg) return null;
-  return <div style={{ background: "#FBEAE4", border: `1px solid ${COLORS.rust}`, color: COLORS.rust, padding: "10px 14px", borderRadius: 4, fontSize: 13, marginBottom: 14 }}>{msg}</div>;
+  return <div style={{ background: "#FCEBEB", border: `1px solid ${COLORS.rust}`, color: COLORS.rust, padding: "10px 14px", borderRadius: 10, fontSize: 13, marginBottom: 14 }}>{msg}</div>;
 }
 
 /* ---------------- SETUP NEEDED / AUTH (unchanged) ---------------- */
@@ -139,7 +139,7 @@ function AuthScreen({ onSignedIn }) {
         <div style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.green, textTransform: "uppercase", marginBottom: 6 }}>{mode === "signup" ? "Create your account" : "Welcome back"}</div>
         <h1 style={{ fontFamily: FONTS.display, fontSize: 24, fontWeight: 600, marginBottom: 22 }}>Foreman</h1>
         <ErrorBanner msg={error} />
-        {notice && <div style={{ background: "#EEF3EE", border: `1px solid ${COLORS.green}`, color: COLORS.green, padding: "10px 14px", borderRadius: 4, fontSize: 13, marginBottom: 14 }}>{notice}</div>}
+        {notice && <div style={{ background: "#EAF8EE", border: `1px solid ${COLORS.green}`, color: COLORS.green, padding: "10px 14px", borderRadius: 4, fontSize: 13, marginBottom: 14 }}>{notice}</div>}
         <label style={labelStyle}>Email</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} placeholder="you@business.com.au" />
         <label style={{ ...labelStyle, marginTop: 16 }}>Password</label>
@@ -224,8 +224,8 @@ function OnboardingWizard({ session, onComplete }) {
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Registered for GST?</label>
                 <div style={{ display: "flex", gap: 8, alignItems: "stretch", height: 44 }}>
-                  <button onClick={() => setBiz({ ...biz, gst_registered: true })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${biz.gst_registered ? COLORS.charcoal : "rgba(30,33,28,0.45)"}`, background: biz.gst_registered ? COLORS.charcoal : "#fff", color: biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>Yes</button>
-                  <button onClick={() => setBiz({ ...biz, gst_registered: false })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${!biz.gst_registered ? COLORS.charcoal : "rgba(30,33,28,0.45)"}`, background: !biz.gst_registered ? COLORS.charcoal : "#fff", color: !biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>No</button>
+                  <button onClick={() => setBiz({ ...biz, gst_registered: true })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${biz.gst_registered ? COLORS.charcoal : "rgba(16,27,45,0.35)"}`, background: biz.gst_registered ? COLORS.charcoal : "#fff", color: biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>Yes</button>
+                  <button onClick={() => setBiz({ ...biz, gst_registered: false })} style={{ flex: 1, fontFamily: FONTS.mono, fontSize: 13, borderRadius: 4, border: `1.5px solid ${!biz.gst_registered ? COLORS.charcoal : "rgba(16,27,45,0.35)"}`, background: !biz.gst_registered ? COLORS.charcoal : "#fff", color: !biz.gst_registered ? COLORS.paper : COLORS.charcoal, cursor: "pointer" }}>No</button>
                 </div>
               </div>
             </div>
@@ -290,11 +290,12 @@ function OnboardingWizard({ session, onComplete }) {
 }
 
 /* ---------------- SIDEBAR ---------------- */
-const HAZARD_STRIPE = `repeating-linear-gradient(45deg, ${COLORS.ochre} 0px, ${COLORS.ochre} 8px, ${COLORS.charcoal} 8px, ${COLORS.charcoal} 16px)`;
+const HAZARD_STRIPE = COLORS.green;
 
 function Sidebar({ biz, tab, setTab, onSignOut }) {
   const tabs = [
     { key: "overview", label: "Overview", icon: LayoutDashboard },
+    { key: "aiassist", label: "AI Assist", icon: Sparkles },
     { key: "bookings", label: "Jobs", icon: Hammer },
     { key: "payments", label: "Invoicing", icon: Receipt },
     { key: "marketing", label: "Marketing", icon: Megaphone },
@@ -306,7 +307,7 @@ function Sidebar({ biz, tab, setTab, onSignOut }) {
       <div style={{ height: 4, background: HAZARD_STRIPE }} />
       <div style={{ padding: "24px 20px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-          <div style={{ width: 34, height: 34, background: COLORS.ochre, borderRadius: 4, color: COLORS.charcoal, fontFamily: FONTS.display, fontSize: 17, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-3deg)", boxShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}>F</div>
+          <div style={{ width: 34, height: 34, background: COLORS.green, borderRadius: 10, color: "#fff", fontFamily: FONTS.display, fontSize: 17, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>F</div>
           <span style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 20, letterSpacing: "-0.01em" }}>Foreman</span>
         </div>
         <div style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.steel, marginTop: 10, paddingLeft: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>{biz.name}</div>
@@ -316,7 +317,7 @@ function Sidebar({ biz, tab, setTab, onSignOut }) {
           const Icon = t.icon;
           const active = tab === t.key;
           return (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, textAlign: "left", background: active ? COLORS.charcoal2 : "transparent", color: active ? COLORS.ochre : "#C9CCC4", border: "none", borderLeft: active ? `3px solid ${COLORS.ochre}` : "3px solid transparent", borderRadius: 3, padding: "11px 12px", fontSize: 13.5, fontFamily: FONTS.body, fontWeight: active ? 700 : 500, cursor: "pointer", marginBottom: 3, transition: "all .12s ease" }}>
+            <button key={t.key} onClick={() => setTab(t.key)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, textAlign: "left", background: active ? COLORS.charcoal2 : "transparent", color: active ? COLORS.green : "#8CA0B8", border: "none", borderLeft: active ? `3px solid ${COLORS.green}` : "3px solid transparent", borderRadius: 3, padding: "11px 12px", fontSize: 13.5, fontFamily: FONTS.body, fontWeight: active ? 700 : 500, cursor: "pointer", marginBottom: 3, transition: "all .12s ease" }}>
               <Icon size={16} strokeWidth={2.25} style={{ flexShrink: 0 }} />
               {t.label}
             </button>
@@ -374,7 +375,7 @@ function DocumentModal({ biz, doc, kind, onClose }) {
   const today = new Date().toLocaleDateString("en-AU");
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(30,33,28,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} className="doc-overlay">
+    <div style={{ position: "fixed", inset: 0, background: "rgba(16,27,45,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} className="doc-overlay">
       <style>{`
         @media print {
           body * { visibility: hidden; }
@@ -603,7 +604,7 @@ function InvoicingTab({ session, biz, jobs, invoices, setInvoices }) {
             ) : (<span style={{ fontFamily: FONTS.mono, fontSize: 11.5, color: COLORS.green }}>PAID via {i.method}</span>)}
           </div>
           {chaseFor === i.id && (
-            <div style={{ marginTop: 12, padding: 14, background: "#F7F5EE", borderRadius: 6 }}>
+            <div style={{ marginTop: 12, padding: 14, background: "#EAF1FE", borderRadius: 6 }}>
               {chaseLoading ? (
                 <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: COLORS.steel }}>Writing…</div>
               ) : (
@@ -642,12 +643,137 @@ function MarketingTab({ biz, jobs }) {
   );
 }
 
+/* ---------------- AI ASSIST (customer enquiry -> reply, SMS, review request) ---------------- */
+function parseAiSections(raw) {
+  const parts = String(raw || "").split("---").map((p) => p.trim());
+  const get = (label) => {
+    const part = parts.find((p) => p.toUpperCase().startsWith(label));
+    if (!part) return "";
+    const idx = part.indexOf(":");
+    return idx >= 0 ? part.slice(idx + 1).trim() : part.trim();
+  };
+  const flagsRaw = get("FLAGS");
+  const flags = flagsRaw && flagsRaw.toLowerCase() !== "none"
+    ? flagsRaw.split(";").map((f) => f.trim()).filter(Boolean)
+    : [];
+  return { reply: get("REPLY"), sms: get("SMS"), review: get("REVIEW"), flags };
+}
+
+function AiAssistTab({ session, biz, setJobs }) {
+  const [client, setClient] = useState("");
+  const [phone, setPhone] = useState("");
+  const [enquiry, setEnquiry] = useState("");
+  const [result, setResult] = useState(null);
+  const [tier, setTier] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState("");
+
+  const draftReply = async () => {
+    if (!enquiry.trim()) { setError("Paste a customer enquiry first."); return; }
+    setLoading(true); setError(""); setSaved(false);
+    const system = `You write concise, tradesperson-voiced customer communications for an Australian ${biz.type} business called "${biz.name}"${biz.area ? ` in ${biz.area}` : ""}. No corporate tone.`;
+    const message = `Customer enquiry:\n"""${enquiry}"""\n\nRespond in this exact plain-text format, using "---" on its own line to separate each section, no markdown:\nREPLY: a friendly, professional reply including a rough price range or next step\n---\nSMS: a short follow-up SMS under 300 characters to send if there's no response in 1-2 days\n---\nREVIEW: a short, warm message to send after the job is done asking for a Google review\n---\nFLAGS: anything worth double-checking before sending (missing callout fee, vague scope, underpriced), separated by semicolons. Write "None" if nothing stands out.`;
+    const raw = await callClaude(system, message);
+    setResult(parseAiSections(raw));
+    setTier("draft");
+    setLoading(false);
+  };
+
+  const secondOpinion = async () => {
+    if (!result) return;
+    setLoading(true); setError("");
+    const system = `You are a meticulous senior tradesperson reviewing a junior staff member's draft customer reply for "${biz.name}". Tighten the wording, fix any pricing or scope risk, and keep it in plain Australian tradie voice.`;
+    const message = `Original enquiry:\n"""${enquiry}"""\n\nDraft reply to review and improve:\n"""${result.reply}"""\n\nRespond in the same "---"-separated REPLY / SMS / REVIEW / FLAGS format as before.`;
+    const raw = await callClaude(system, message);
+    setResult(parseAiSections(raw));
+    setTier("escalated");
+    setLoading(false);
+  };
+
+  const saveAsJob = async () => {
+    if (!client.trim()) { setError("Add the customer's name to save this as a job."); return; }
+    setError("");
+    try {
+      const [row] = await supaRest("jobs", { method: "POST", token: session.token, body: { business_id: biz.id, client, phone, address: "", service: enquiry.slice(0, 80), amount: null, date: null, status: "Enquiry" } });
+      setJobs((j) => [...j, row]);
+      setSaved(true);
+    } catch (e) { setError("Couldn't save that job."); }
+  };
+
+  const copy = (key, text) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(""), 1200);
+  };
+
+  const sections = result ? [
+    ["reply", "Reply to customer", result.reply],
+    ["sms", "Follow-up SMS", result.sms],
+    ["review", "Review request", result.review],
+  ] : [];
+
+  return (
+    <div>
+      <SectionTitle sub="Paste any customer enquiry and get a reply, follow-up SMS, and review request drafted for you.">AI Assist</SectionTitle>
+      <ErrorBanner msg={error} />
+      <Card style={{ marginBottom: 18 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+          <input placeholder="Customer name (optional)" value={client} onChange={(e) => setClient(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 140 }} />
+          <input placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 120 }} />
+        </div>
+        <label style={labelStyle}>Customer enquiry</label>
+        <textarea value={enquiry} onChange={(e) => setEnquiry(e.target.value)} placeholder="Paste the email, SMS, or voicemail note…" rows={4} style={{ ...inputStyle, resize: "vertical" }} />
+        <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center", flexWrap: "wrap" }}>
+          <Btn onClick={draftReply} disabled={loading}>{loading && tier !== "escalated" ? "WRITING…" : "DRAFT REPLY"}</Btn>
+          {result && <Btn variant="ghost" onClick={secondOpinion} disabled={loading}>{loading && tier === "escalated" ? "REVIEWING…" : "GET SECOND OPINION"}</Btn>}
+        </div>
+      </Card>
+
+      {result && (
+        <Card style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <span style={{ fontFamily: FONTS.mono, fontSize: 11, padding: "5px 12px", borderRadius: 20, background: tier === "escalated" ? COLORS.charcoal : COLORS.green, color: "#fff", textTransform: "uppercase" }}>
+              {tier === "escalated" ? "Reviewed twice" : "Fast draft"}
+            </span>
+          </div>
+          {result.flags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+              {result.flags.map((f, i) => (
+                <span key={i} style={{ fontFamily: FONTS.mono, fontSize: 10.5, background: COLORS.rust, color: "#fff", padding: "5px 10px", borderRadius: 20 }}>{f}</span>
+              ))}
+            </div>
+          )}
+          {sections.map(([key, label, text]) => (
+            <div key={key} style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={labelStyle}>{label}</span>
+                <button onClick={() => copy(key, text)} style={{ fontFamily: FONTS.mono, fontSize: 11, color: COLORS.green, background: "none", border: "none", cursor: "pointer" }}>{copied === key ? "Copied" : "Copy"}</button>
+              </div>
+              <div style={{ fontSize: 14.5, lineHeight: 1.65 }}>{text}</div>
+            </div>
+          ))}
+          <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 16 }}>
+            <Btn variant="accent" onClick={saveAsJob} disabled={saved}>{saved ? "SAVED AS JOB" : "SAVE AS JOB (STATUS: ENQUIRY)"}</Btn>
+          </div>
+        </Card>
+      )}
+
+      <Card style={{ background: "#EAF1FE" }}>
+        <div style={{ fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.green, marginBottom: 8 }}>How this stays cost-effective</div>
+        <p style={{ fontSize: 13, lineHeight: 1.7, color: COLORS.steel, margin: 0 }}>"Draft reply" uses a fast, low-cost pass — enough for most enquiries. "Get second opinion" only fires when a job's worth double-checking, and calls a stronger model to tighten pricing and wording. Both run through the same ai-relay function as the rest of Foreman's AI features.</p>
+      </Card>
+    </div>
+  );
+}
+
 function WebsiteTab({ biz }) {
   return (
     <div>
       <SectionTitle sub="Where customers install your app to their home screen.">Website / App Page</SectionTitle>
 
-      <Card style={{ marginBottom: 20, background: "#F7F5EE" }}>
+      <Card style={{ marginBottom: 20, background: "#EAF1FE" }}>
         <div style={{ fontFamily: FONTS.mono, fontSize: 11, textTransform: "uppercase", color: COLORS.green, marginBottom: 10 }}>How to explain this to a client</div>
         <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
           This page is the business's front door. A customer visits it in any browser, taps <strong>"Add to Home Screen,"</strong> and it behaves like a real installed app — its own icon, opens full-screen, no App Store required.
@@ -775,7 +901,17 @@ export default function ForemanApp() {
   const [services, setServices] = useState([]);
   const [loadingBiz, setLoadingBiz] = useState(false);
 
-  const fontLink = <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />;
+  const fontLink = <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />;
+  const globalStyle = (
+    <style>{`
+      input:focus, select:focus, textarea:focus {
+        border-color: ${COLORS.green} !important;
+        box-shadow: 0 0 0 4px rgba(22,163,74,0.14);
+      }
+      button:active { transform: scale(0.98); }
+      button { transition: transform 0.08s ease, background 0.15s ease, opacity 0.15s ease; }
+    `}</style>
+  );
 
   useEffect(() => {
     if (!session) return;
@@ -804,18 +940,19 @@ export default function ForemanApp() {
     } catch (e) {}
   };
 
-  if (!CONFIGURED) return <>{fontLink}<SetupNeeded /></>;
-  if (!session) return <>{fontLink}<AuthScreen onSignedIn={setSession} /></>;
-  if (loadingBiz) return <>{fontLink}<div style={{ minHeight: "100vh", background: COLORS.charcoal }} /></>;
-  if (!biz) return <>{fontLink}<OnboardingWizard session={session} onComplete={handleOnboardingComplete} /></>;
+  if (!CONFIGURED) return <>{fontLink}{globalStyle}<SetupNeeded /></>;
+  if (!session) return <>{fontLink}{globalStyle}<AuthScreen onSignedIn={setSession} /></>;
+  if (loadingBiz) return <>{fontLink}{globalStyle}<div style={{ minHeight: "100vh", background: COLORS.charcoal }} /></>;
+  if (!biz) return <>{fontLink}{globalStyle}<OnboardingWizard session={session} onComplete={handleOnboardingComplete} /></>;
 
   return (
     <>
-      {fontLink}
-      <div style={{ display: "flex", fontFamily: FONTS.body, background: "#FAF9F5" }}>
+      {fontLink}{globalStyle}
+      <div style={{ display: "flex", fontFamily: FONTS.body, background: "#EFF3F0" }}>
         <Sidebar biz={biz} tab={tab} setTab={setTab} onSignOut={() => { setSession(null); setBiz(null); setJobs([]); setInvoices([]); setServices([]); }} />
         <div style={{ flex: 1, padding: "36px 44px" }}>
           {tab === "overview" && <Overview biz={biz} jobs={jobs} invoices={invoices} />}
+          {tab === "aiassist" && <AiAssistTab session={session} biz={biz} setJobs={setJobs} />}
           {tab === "bookings" && <JobsTab session={session} biz={biz} jobs={jobs} setJobs={setJobs} services={services} />}
           {tab === "payments" && <InvoicingTab session={session} biz={biz} jobs={jobs} invoices={invoices} setInvoices={setInvoices} />}
           {tab === "marketing" && <MarketingTab biz={biz} jobs={jobs} />}
